@@ -62,7 +62,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: Login to GitHub Container Registry (GHCR)
-        #if: false
+        if: false
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -76,7 +76,7 @@ jobs:
           images: |
             registry.hub.docker.com/kdsda/payara-server-ce:tagname
           flavor: |
-            prefix=${{ matrix.payara_version }}-${{ matrix.java_version }}-
+            prefix=${{ matrix.payara_release }}-${{ matrix.java_version }}-
           tags: |
             type=schedule,pattern={{date 'YYYYMMDD-HHmmss' tz='Europe/Oslo'}}
             type=ref,event=branch

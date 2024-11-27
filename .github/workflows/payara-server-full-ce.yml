@@ -74,7 +74,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            registry.hub.docker.com/kdsda/payara-server-ce:tagname
+            registry.hub.docker.com/kdsda/payara-server-ce
           flavor: |
             prefix=${{ matrix.payara_release }}-${{ matrix.java_version }}-
           tags: |

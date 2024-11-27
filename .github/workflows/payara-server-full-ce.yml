@@ -84,11 +84,11 @@ jobs:
         name: Build and Push
         uses: docker/build-push-action@v6
         with:
-          context: docker
+          context: "{{defaultContext}}:docker"
           file: Dockerfile.debian
           push: false
-          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
           build_args: |
             base_image_name=docker.io/azul/zulu-openjdk-debian
             base_image_version=${{ matrix.java_version }}-jre-headless

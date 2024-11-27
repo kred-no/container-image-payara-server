@@ -129,13 +129,6 @@ ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRE
 #rm -rf ${PAYARA_DIR}/glassfish/modules/console-jms-plugin.jar
 HEREDOC
 
-#COPY <<HEREDOC /info.txt
-#Build-stage finished.
-#This COPY step just shows
-#how to create an inline-file,
-#so I will remember it
-#HEREDOC
-
 ########################
 ## Create Runtime Image
 ########################

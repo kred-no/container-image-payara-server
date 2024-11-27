@@ -89,7 +89,7 @@ jobs:
           push: true
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
-          build_args: |
+          build-args: |
             base_image_name=docker.io/azul/zulu-openjdk-debian
             base_image_version=${{ matrix.java_version }}-jre-headless
             payara_version=${{ matrix.payara_release }}

@@ -84,8 +84,8 @@ jobs:
         name: Build and Push
         uses: docker/build-push-action@v6
         with:
-          context: ./docker
-          file: ./docker/Dockerfile.debian
+          context: docker
+          file: Dockerfile.debian
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

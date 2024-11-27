@@ -1,0 +1,97 @@
+# https://docs.docker.com/build/ci/github-actions/manage-tags-labels/
+# https://docs.docker.com/build/ci/github-actions/test-before-push/
+# TODO: image: ghcr.io/kred-no/payara-server-ce
+---
+name: Payara Server Full (Community Edition)
+
+on:
+  workflow_dispatch: {}
+  
+  schedule:
+    - cron: "15 02 */14 * *" # Every 14-day @02:15
+  
+  release:
+    types:
+      - published
+
+env:
+  # target_image_name: ${{ github.repository }}
+  payara_admin_secret: ${{ secrets.PAYARA_ADMIN_SECRET }} # Default: Admin123
+
+jobs:
+  payara_build_and_publish:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ['ubuntu-latest']
+        java_version: ['21', '17']
+        payara_release:
+          - '6.2024.11'
+          - '7.2024.1.Alpha2'
+        #include : []
+        exclude:
+          - payara_release: '7.2024.1.Alpha2'
+            java_version: '17'
+    
+    permissions:
+      packages: write
+      contents: read
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@latest
+        with:
+          path: docker
+      -
+        name: Set up QEMU for Docker
+        uses: docker/setup-qemu-action@latest
+      -
+        name: Setup Buildx for Docker
+        uses: docker-setup-buildx-action@latest
+      -
+        name: Login to Docker Hub
+        if: true #github.event_name != 'pull_request'
+        uses: docker/login-action@latest
+        with:
+          registry: registry.hub.docker.com # docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Login to GitHub Container Registry (GHCR)
+        if: false
+        uses: docker/login-action@latest
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Configure Docker Metadata
+        id: meta
+        uses: docker/metadata-action@latest
+        with:
+          images: |
+            registry.hub.docker.com/kdsda/payara-server-ce:tagname
+          flavor: |
+            prefix=${{ matrix.payara_version }}-${{ matrix.java_version }}-
+          tags: |
+            type=schedule,pattern={{date 'YYYYMMDD-HHmmss' tz='Europe/Oslo'}}
+            type=ref,event=branch
+      -
+        name: Build and Push
+        uses: docker/build-push-action@latest
+        with:
+          context: ./docker
+          file: ./docker/Dockerfile.debian
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build_args: |
+            base_image_name=docker.io/azul/zulu-openjdk-debian
+            base_image_version=${{ matrix.java_version }}-jre-headless
+            payara_version=${{ matrix.payara_release }}
+            postgres_jdbc_version=42.7.4
+            mssql_jdbc_version=12.8.1.jre11
+            payara_admin_secret=${{ env.payara_admin_secret }}

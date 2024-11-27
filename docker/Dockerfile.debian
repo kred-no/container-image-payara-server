@@ -1,0 +1,176 @@
+# https://mvnrepository.com/artifact/fish.payara
+# Payara ONLY supports Java LTS versions (8,11,17)
+# https://blog.payara.fish/why-payara-platform-only-supports-lts-versions-of-jdk
+
+########################
+## BUILD ARGS
+########################
+
+ARG base_image_name="docker.io/azul/zulu-openjdk-debian"
+ARG base_image_version="21-jre-headless"
+
+ARG payara_version="6.2024.11"
+ARG payara_admin_secret="Admin123"
+ARG postgres_jdbc_version="42.7.4"
+ARG mssql_jdbc_version="12.8.1.jre11"
+ARG logback_encoder_version="8.0"
+ARG logback_libs_version="1.0.0"
+ARG logback_delegation_version="1.0.0"
+ARG activemq_rar_version="6.1.4"
+
+########################
+## Create Base Image
+########################
+
+FROM ${base_image_name}:${base_image_version} AS base
+
+ENV LC_ALL="C" \
+    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=85.0 -XX:InitialRAMPercentage=85.0 -XX:+ExitOnOutOfMemoryError"
+
+# Add locales
+RUN <<HEREDOC
+#!/usr/bin/env bash
+sed -i "/nb_NO/s/^# \?//g" /etc/locale.gen
+locale-gen
+HEREDOC
+
+RUN <<HEREDOC
+#!/usr/bin/env bash
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+apt-get update
+apt-get -qqy install --no-install-recommends apt-utils > /dev/null 2>&1
+HEREDOC
+
+########################
+## Builder
+########################
+
+FROM base AS builder
+
+# Build Args
+ARG payara_version
+ARG java_version
+ARG payara_admin_secret
+ARG extra_locales
+ARG tmp_folder
+ARG postgres_jdbc_version
+ARG mssql_jdbc_version
+ARG logback_encoder_version
+ARG logback_libs_version
+ARG logback_delegation_version
+ARG activemq_rar_version
+
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=85.0 -XX:InitialRAMPercentage=85.0 -XX:+ExitOnOutOfMemoryError" \
+    ADMIN_USER="admin" \
+    DOMAIN_NAME="payara" \
+    PAYARA_DIR="/opt/payara"
+
+ENV CONFIG_DIR="${PAYARA_DIR}/config" \
+    PATH_ADMIN_SECRET="${PAYARA_DIR}/secret.txt"
+
+RUN <<HEREDOC
+#!/usr/bin/env bash
+apt-get -qqy install --no-install-recommends tar unzip curl wget gpg coreutils
+HEREDOC
+
+RUN <<HEREDOC
+#!/usr/bin/env bash
+curl --retry 5 -L -o /tmp/payara.zip https://repo1.maven.org/maven2/fish/payara/distributions/payara/${payara_version}/payara-${payara_version}.zip
+unzip -qq -d /tmp /tmp/payara.zip
+mv /tmp/payara$(echo ${payara_version} | awk -F. '{print $1}') /opt/payara
+rm -rf /opt/payara/glassfish/domains/**
+rm -rf /tmp/payara.zip
+HEREDOC
+
+RUN <<HEREDOC
+#!/usr/bin/env bash
+touch ${PATH_ADMIN_SECRET}
+printf "%s\n%s\n" "AS_ADMIN_PASSWORD=" "AS_ADMIN_NEWPASSWORD=${payara_admin_secret}" | tee ${PATH_ADMIN_SECRET}
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} create-domain --nopassword=true ${DOMAIN_NAME}
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} change-admin-password --domain_name=${DOMAIN_NAME}
+printf "%s\n" "AS_ADMIN_PASSWORD=${payara_admin_secret}" | tee ${PATH_ADMIN_SECRET}
+HEREDOC
+
+RUN <<HEREDOC
+#!/usr/bin/env bash
+curl --retry 5 -fsSL -o ${PAYARA_DIR}/glassfish/domains/${DOMAIN_NAME}/lib/activemq-rar.rar "https://repo1.maven.org/maven2/org/apache/activemq/activemq-rar/${activemq_rar_version}/activemq-rar-${activemq_rar_version}.rar"
+mkdir -p /tmp
+curl --retry 5 -fsSL -o /tmp/postgresql.jar                "https://repo1.maven.org/maven2/org/postgresql/postgresql/${postgres_jdbc_version}/postgresql-${postgres_jdbc_version}.jar"
+curl --retry 5 -fsSL -o /tmp/mssql.jar                     "https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/${mssql_jdbc_version}/mssql-jdbc-${mssql_jdbc_version}.jar"
+curl --retry 5 -fsSL -o /tmp/logstash-logback-encoder.jar  "https://repo1.maven.org/maven2/net/logstash/logback/logstash-logback-encoder/${logback_encoder_version}/logstash-logback-encoder-${logback_encoder_version}.jar"
+curl --retry 5 -fsSL -o /tmp/payara-logback-libs.jar       "https://repo1.maven.org/maven2/io/github/goodees/payara-logback-libs/${logback_libs_version}/payara-logback-libs-${logback_libs_version}.jar"
+curl --retry 5 -fsSL -o /tmp/payara-logback-delegation.jar "https://repo1.maven.org/maven2/io/github/goodees/payara-logback-delegation/${logback_delegation_version}/payara-logback-delegation-${logback_delegation_version}.jar"
+HEREDOC
+
+RUN <<HEREDOC
+#!/usr/bin/env bash
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} start-domain ${DOMAIN_NAME} 
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} enable-secure-admin
+
+for JVM_OPTION in $(${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} list-jvm-options | grep -E "Xm[sx]");do
+  ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} delete-jvm-options ${JVM_OPTION}
+done
+
+# Disable OpenMQ
+#${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} set configs.config.server-config.jms-service.type=DISABLED
+#${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} set configs.config.default-config.jms-service.type=DISABLED
+#${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} delete-connector-connection-pool --cascade jms/__defaultConnectionFactory-Connection-Pool
+
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} add-library --type common /tmp/postgresql.jar
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} add-library --type common /tmp/mssql.jar
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} add-library --type common /tmp/logstash-logback-encoder.jar
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} add-library --type common /tmp/payara-logback-libs.jar
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} add-library --type common /tmp/payara-logback-delegation.jar
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} create-jvm-options "\-Dlogback.configurationFile=${CONFIG_DIR}/logback.xml"
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} stop-domain --kill=true ${DOMAIN_NAME}
+
+# Disable OpenMQ
+#rm -rf  ${PAYARA_DIR}/glassfish/lib/install/applications/jmsra
+#rm -rf ${PAYARA_DIR}/glassfish/modules/console-jms-plugin.jar
+HEREDOC
+
+#COPY <<HEREDOC /info.txt
+#Build-stage finished.
+#This COPY step just shows
+#how to create an inline-file,
+#so I will remember it
+#HEREDOC
+
+########################
+## Create Runtime Image
+########################
+
+FROM base
+
+ENV TZ="Europe/Oslo" \
+    LC_ALL="nb_NO.ISO-8859-1" \
+    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=85.0 -XX:InitialRAMPercentage=85.0 -XX:+ExitOnOutOfMemoryError" \
+    PAYARA_DIR="/opt/payara" \
+    DOMAIN_NAME="payara" \
+    PAYARA_USER="payara" \
+    ADMIN_USER="admin" \
+    ADMIN_PASSWORD_OVERRIDE=""
+
+ENV CONFIG_DIR="${PAYARA_DIR}/config" \
+    SCRIPT_DIR="${PAYARA_DIR}/scripts" \
+    DEPLOY_DIR="${PAYARA_DIR}/deploy" \
+    PATH_ADMIN_SECRET="${PAYARA_DIR}/secret.txt"
+
+ENV PATH_PREBOOT_COMMANDS="${CONFIG_DIR}/preboot-commands.asadmin" \
+    PATH_POSTBOOT_COMMANDS="${CONFIG_DIR}/postboot-commands.asadmin"
+
+RUN useradd --system --comment "Payara Service User" --home-dir ${PAYARA_DIR} --no-create-home --user-group payara
+
+RUN <<HEREDOC
+#!/usr/bin/env bash
+apt-get -qqy install --no-install-recommends gosu dumb-init
+apt-get clean
+rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+apt-get autoremove
+HEREDOC
+
+COPY --from=builder --chown=payara:payara ["/opt/payara", "/opt/payara"]
+COPY --chmod=544 ["docker-entrypoint.debian.sh", "/usr/local/bin/docker-entrypoint.sh"]
+
+EXPOSE 4848 8080 8181 9009
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

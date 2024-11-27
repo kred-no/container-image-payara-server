@@ -3,7 +3,7 @@
 # https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows
 # TODO: image: ghcr.io/kred-no/payara-server-ce
 ---
-name: Payara Server Full (Community Edition)
+name: Payara Server - Community Edition
 
 on:
   workflow_dispatch:
@@ -86,7 +86,7 @@ jobs:
         with:
           context: "{{defaultContext}}:docker"
           file: Dockerfile.debian
-          push: false
+          push: true
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
           build_args: |

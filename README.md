@@ -1,5 +1,7 @@
 # container-image-payara-server
 
+![build](https://github.com/kred-no/container-image-payara-server/actions/workflows/build-and-push.yml/badge.svg)
+
 Container image builds for Payara Server Full (Community Edition)
 
 | Release            | Java RE |

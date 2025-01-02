@@ -4,10 +4,15 @@
 
 Container image builds for Payara Server Full (Community Edition)
 
-| Release            | Java RE |
-| :--                 | :--    |
-| `6.2024.11`         | 17,21  |
-| `7.2024.1 (Alpha2)` | 21     |
+| Release         | Java RE | Active |
+| :--             | :--     | :-:    |
+| `6.2024.12`     | 17,21   | Yes |
+| ~~`6.2024.11`~~ | 17,21   | No  |
+
+| Release                 | Java RE | Active |
+| :--                     | :--     | :-:    |
+| `7.2024.3 (Alpha3)`     | 21      | Yes |
+| ~~`7.2024.1 (Alpha2)`~~ | 21      | No  |
 
 This build contains a standard installation of the Payara Server.
 

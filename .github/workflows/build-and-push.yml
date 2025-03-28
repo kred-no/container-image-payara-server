@@ -27,11 +27,11 @@ jobs:
         os: ['ubuntu-latest']
         java_version: ['21', '17']
         payara_release:
-          - '6.2024.12'
-          - '7.2024.1.Alpha3'
+          - '6.2025.3'
+          - '7.2025.1.Alpha1'
         #include : []
         exclude:
-          - payara_release: '7.2024.1.Alpha3'
+          - payara_release: '7.2025.1.Alpha1'
             java_version: '17'
     
     permissions:

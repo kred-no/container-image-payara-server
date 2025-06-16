@@ -27,13 +27,14 @@ jobs:
         os: ['ubuntu-latest']
         java_version: ['21', '17']
         payara_release:
+          - '7.2025.1.Alpha2'
+          - '6.2025.6'
           - '6.2025.3'
-          - '7.2025.1.Alpha1'
         #include : []
         exclude:
-          - payara_release: '7.2025.1.Alpha1'
+          - payara_release: '7.2025.1.Alpha2'
             java_version: '17'
-    
+
     permissions:
       packages: write
       contents: read
@@ -93,6 +94,7 @@ jobs:
             base_image_name=docker.io/azul/zulu-openjdk-debian
             base_image_version=${{ matrix.java_version }}-jre-headless
             payara_version=${{ matrix.payara_release }}
-            postgres_jdbc_version=42.7.4
+            postgres_jdbc_version=42.7.7
             mssql_jdbc_version=12.8.1.jre11
+            activemq_rar_version=6.1.6
             payara_admin_secret=${{ env.payara_admin_secret }}

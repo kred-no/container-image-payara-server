@@ -4,35 +4,28 @@
 
 Container image builds for Payara Server Full (Community Edition)
 
-| Release         | Java RE | Active |
-| :--             | :--     | :-:    |
-| `6.2024.12`     | 17,21   | Yes |
-| ~~`6.2024.11`~~ | 17,21   | No  |
-
-| Release                 | Java RE | Active |
-| :--                     | :--     | :-:    |
-| `7.2024.3 (Alpha3)`     | 21      | Yes |
-| ~~`7.2024.1 (Alpha2)`~~ | 21      | No  |
-
-This build contains a standard installation of the Payara Server.
+**Payara Server (Community Edition)**
 
   * Secure Admin enabled
   * Postgres JDBC driver
   * MSSQL JDBC driver
-  * ActiveMQ Client 
+  * ActiveMQ Client  (RAR)
     * Disable OpenMQ: `https://blog.payara.fish/disabling-openmq-in-payara-server`
     * Using ActiveMQ `https://blog.payara.fish/connecting-to-activemq-with-payara-server`
     * Location: `glassfish/domains/payara/lib/activemq-rar.rar`
 
-## Build locally
+**Default Credentials**
+
+  * Username: `Admin`
+  * Password: `Admin123`
+
+## Build & Run locally
 
 ```bash
 docker buildx build -f Dockerfile -t local/payara:latest .
 ```
 
-## Using the image
-
-Default Credentials:
-
-  * Username: `Admin`
-  * Password: `Admin123`
+```bash
+# Example
+docker run --rm -it -p 4848:4848 -p 8080:8080 --name payara local/payara:latest
+```

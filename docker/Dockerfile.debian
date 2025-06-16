@@ -11,7 +11,7 @@ ARG base_image_version="21-jre-headless"
 
 ARG payara_version="6.2024.11"
 ARG payara_admin_secret="Admin123"
-ARG postgres_jdbc_version="42.7.4"
+ARG postgres_jdbc_version="42.7.7"
 ARG mssql_jdbc_version="12.8.1.jre11"
 ARG logback_encoder_version="8.0"
 ARG logback_libs_version="1.0.0"

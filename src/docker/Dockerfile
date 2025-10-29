@@ -6,19 +6,17 @@
 # BUILD ARGUMENTS
 # ----------------------
 
-#ARG builder_image="docker.io/debian:latest"
 ARG builder_image="docker.io/alpine/ansible:latest"
 ARG runtime_image="docker.io/azul/zulu-openjdk-debian:25-jre-headless"
 
-ARG bld_activemq_rar_version="6.1.8"
-ARG bld_logback_delegation_version="1.0.0"
-ARG bld_logback_encoder_version="9.0"
-ARG bld_logback_libs_version="1.0.0"
-ARG bld_mssql_jdbc_version="10.2.1"
-#ARG bld_payara_admin_secret="Admin123"
-ARG bld_payara_version_major='6'
-ARG bld_payara_version_release='2025.10'
-ARG bld_postgres_jdbc_version="42.3.6"
+#ARG bld_activemq_rar_version="6.1.8"
+#ARG bld_logback_delegation_version="1.0.0"
+#ARG bld_logback_encoder_version="9.0"
+#ARG bld_logback_libs_version="1.0.0"
+#ARG bld_mssql_jdbc_version="10.2.1"
+#ARG bld_payara_version_major='6'
+#ARG bld_payara_version_release='2025.10'
+#ARG bld_postgres_jdbc_version="42.3.6"
 
 # ----------------------
 # BUILDER
@@ -26,13 +24,12 @@ ARG bld_postgres_jdbc_version="42.3.6"
 
 FROM "${builder_image}" AS builder
 
-# Required to re-declare global variables inside stage
+# (Re)declare global variables inside each stage
 ARG bld_activemq_rar_version
 ARG bld_logback_delegation_version
 ARG bld_logback_encoder_version
 ARG bld_logback_libs_version
 ARG bld_mssql_jdbc_version
-ARG bld_payara_admin_secret
 ARG bld_payara_version_major
 ARG bld_payara_version_release
 ARG bld_postgres_jdbc_version
@@ -42,6 +39,10 @@ ARG bld_postgres_jdbc_version
 #COPY --chmod='755' ["./files/setup-builder.debian.sh", "/tmp/setup-builder.sh"]
 #RUN ./tmp/setup-builder.sh
 
+# Add Required OS packages
+RUN apk add --no-cache tar unzip zip
+
+# Run Ansible Playbook(s)
 COPY --chmod='755' ["./files/ansible/download.yml", "/tmp/download.yml"]
 RUN ansible-playbook -i localhost, /tmp/download.yml \
   --extra-vars "activemq_rar_version=${bld_activemq_rar_version}"\
@@ -59,12 +60,10 @@ RUN ansible-playbook -i localhost, /tmp/download.yml \
 
 FROM ${runtime_image}
 
-# Required to re-declare global variables inside stage
-#ARG bld_payara_admin_secret
-
 # Override at runtime, if required. Examples:
 #   TZ="Europe/Oslo"
 #   LC_ALL="nb_NO.ISO-8859-1"
+
 ENV LC_ALL="C" \
     JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=85.0 -XX:InitialRAMPercentage=85.0 -XX:+ExitOnOutOfMemoryError"
 

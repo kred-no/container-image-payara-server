@@ -64,7 +64,7 @@
           name: Payara - Rename Folder
           ansible.builtin.command:
             argv:
-              - /usr/bin/mv
+              - /bin/mv
               - "{{ export_folder }}/payara{{ payara_version_major }}"
               - "{{ export_folder }}/payara"
             removes: "{{ export_folder }}/payara{{ payara_version_major }}"

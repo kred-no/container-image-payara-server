@@ -22,6 +22,8 @@ env:
 
 jobs:
   build_payara_container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     permissions:
       packages: write
@@ -30,7 +32,6 @@ jobs:
     strategy:
       fail-fast: true # One failed build => fail all
       matrix:
-        os: ['ubuntu-latest']
         runtime_image: 
           - 'docker.io/azul/zulu-openjdk-debian:25-jre-headless'
         payara_major:
@@ -41,9 +42,6 @@ jobs:
           - payara_major: '7'
             payara_minor: 2025.1.Beta1
         exclude: []
-
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
     
     steps:
       -

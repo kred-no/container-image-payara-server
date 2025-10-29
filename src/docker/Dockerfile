@@ -6,7 +6,8 @@
 # BUILD ARGUMENTS
 # ----------------------
 
-ARG builder_image="docker.io/debian:latest"
+#ARG builder_image="docker.io/debian:latest"
+ARG builder_image="docker.io/alpine/ansible:latest"
 ARG runtime_image="docker.io/azul/zulu-openjdk-debian:25-jre-headless"
 
 ARG bld_activemq_rar_version="6.1.8"
@@ -37,10 +38,9 @@ ARG bld_payara_version_release
 ARG bld_postgres_jdbc_version
 
 # Include pipx bin-path
-ENV PATH="/root/.local/bin:$PATH"
-
-COPY --chmod='755' ["./files/setup-builder.debian.sh", "/tmp/setup-builder.sh"]
-RUN ./tmp/setup-builder.sh
+#ENV PATH="/root/.local/bin:$PATH"
+#COPY --chmod='755' ["./files/setup-builder.debian.sh", "/tmp/setup-builder.sh"]
+#RUN ./tmp/setup-builder.sh
 
 COPY --chmod='755' ["./files/ansible/download.yml", "/tmp/download.yml"]
 RUN ansible-playbook -i localhost, /tmp/download.yml \

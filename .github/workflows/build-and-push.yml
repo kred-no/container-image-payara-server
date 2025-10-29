@@ -14,7 +14,8 @@ on:
       - published
 
 env:
-  builder_image: 'docker.io/debian:latest'
+  #builder_image: 'docker.io/debian:latest'
+  builder_image: 'docker.io/alpine/ansible:latest'
   version_activemq_rar: '6.1.8'
   version_logback_delegation: '1.0.0'
   version_logback_encoder: '9.0'
@@ -59,11 +60,10 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
       -
-        name: Login to docker.io
-        if: true
+        name: Login to docker hub
         uses: docker/login-action@v3
         with:
-          registry: docker.io
+          registry: registry.hub.docker.com
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -

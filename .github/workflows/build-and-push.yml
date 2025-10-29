@@ -13,13 +13,12 @@ on:
 env:
   builder_image: 'docker.io/debian:latest'
   payara_admin_secret: ${{ secrets.PAYARA_ADMIN_SECRET }} # Default: Admin123
-  versions:
-    activemq_rar: '6.1.8'
-    logback_delegation: '1.0.0'
-    logback_encoder: '9.0'
-    logback_libs: '1.0.0'
-    mssql_jdbc: '10.2.1'
-    postgres_jdbc: '42.3.6'
+  version_activemq_rar: '6.1.8'
+  version_logback_delegation: '1.0.0'
+  version_logback_encoder: '9.0'
+  version_logback_libs: '1.0.0'
+  version_mssql_jdbc: '10.2.1'
+  version_postgres_jdbc: '42.3.6'
 
 jobs:
   build_payara_container:
@@ -102,9 +101,9 @@ jobs:
             bld_payara_admin_secret="${{ env.payara_admin_secret }}"
             bld_payara_version_major="${{ matrix.payara_major }}"
             bld_payara_version_release="${{ matrix.payara_minor }}"
-            bld_activemq_rar_version="${{ env.versions.activemq }}"
-            bld_logback_delegation_version="${{ env.versions.logback_delegation }}"
-            bld_logback_encoder_version="${{ env.versions.logback_encoder }}"
-            bld_logback_libs_version="${{ env.versions.logback_libs }}"
-            bld_mssql_jdbc_version="${{ env.versions.mssql_jdbc }}"
-            bld_postgres_jdbc_version="${{ env.versions.postgres_jdbc }}"
+            bld_activemq_rar_version="${{ env.version_activemq }}"
+            bld_logback_delegation_version="${{ env.version_logback_delegation }}"
+            bld_logback_encoder_version="${{ env.version_logback_encoder }}"
+            bld_logback_libs_version="${{ env.version_logback_libs }}"
+            bld_mssql_jdbc_version="${{ env.version_mssql_jdbc }}"
+            bld_postgres_jdbc_version="${{ env.version_postgres_jdbc }}"

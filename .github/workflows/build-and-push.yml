@@ -12,7 +12,6 @@ on:
 
 env:
   builder_image: 'docker.io/debian:latest'
-  payara_admin_secret: ${{ secrets.PAYARA_ADMIN_SECRET }} # Default: Admin123
   version_activemq_rar: '6.1.8'
   version_logback_delegation: '1.0.0'
   version_logback_encoder: '9.0'
@@ -97,10 +96,10 @@ jobs:
           build-args: |
             builder_image=${{ env.builder_image }}
             runtime_image=${{ matrix.runtime_image }}
-            bld_payara_admin_secret=${{ env.payara_admin_secret }}
+            bld_payara_admin_secret=${{ secrets.PAYARA_ADMIN_SECRET }}
             bld_payara_version_major=${{ matrix.payara_major }}
             bld_payara_version_release=${{ matrix.payara_minor }}
-            bld_activemq_rar_version=${{ env.version_activemq }}
+            bld_activemq_rar_version=${{ env.version_activemq_rar }}
             bld_logback_delegation_version=${{ env.version_logback_delegation }}
             bld_logback_encoder_version=${{ env.version_logback_encoder }}
             bld_logback_libs_version=${{ env.version_logback_libs }}

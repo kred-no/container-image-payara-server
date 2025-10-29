@@ -1,0 +1,109 @@
+# Payara Server CE: N/A
+# ActiveMQ RAR: https://activemq.apache.org/components/classic/documentation/resource-adapter
+---
+- name: Payara Builder - Download External Resources
+  hosts: localhost
+  connection: local
+
+  become: true
+  gather_facts: false
+
+  vars:
+    temp_folder: /tmp
+    export_folder: /output
+
+  tasks:
+    -
+      name: Assert - Required Variables
+      ansible.builtin.assert:
+        that:
+          - item is defined         # Check if VARIABLE NAME exists in scope
+          - vars[item] | length > 0 # Check if VARIABLE VALUE is not empty
+        fail_msg: "Required variable '{{ item }}' is not defined or empty"
+      loop:
+        - activemq_rar_version
+        - logback_delegation_version
+        - logback_encoder_version
+        - logback_libs_version
+        - mssql_jdbc_version
+        - payara_version_major
+        - payara_version_release
+        - postgres_jdbc_version
+    -
+      name: Create Required Folders
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ temp_folder }}"
+        - "{{ export_folder }}"
+    -
+      name: --- Payara Download ---
+      when: true
+      block:
+        -
+          name: Payara - Download Archive
+          vars:
+            payara_version: "{{ payara_version_major }}.{{ payara_version_release }}"
+            payara_url: "https://nexus.payara.fish/repository/payara-community/fish/payara/distributions/payara/{{ payara_version }}/payara-{{ payara_version }}.zip"
+          ansible.builtin.get_url:
+            url: "{{ payara_url }}"
+            dest: "{{ temp_folder }}/payara.zip"
+            checksum: "md5:{{ payara_url }}.md5"
+          register: download_result
+          until: download_result is succeeded
+          retries: 3
+          delay: 10
+        -
+          name: Payara - Extract Archive
+          ansible.builtin.unarchive:
+            src: "{{ download_result.dest }}"
+            dest: "{{ export_folder }}"
+        -
+          name: Payara - Rename Folder
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/mv
+              - "{{ export_folder }}/payara{{ payara_version_major }}"
+              - "{{ export_folder }}/payara"
+            removes: "{{ export_folder }}/payara{{ payara_version_major }}"
+            creates: "{{ export_folder }}/payara"
+    -
+      name: --- Payara Library Files ---
+      when: true
+      block:
+        -
+          name: Define Payara Library Path
+          ansible.builtin.set_fact:
+            payara_library_path: "{{ export_folder }}/payara/glassfish/lib/"
+        -
+          name: Payara - Maven Central Download
+          ansible.builtin.get_url:
+            url: "{{ item.url }}"
+            dest: "{{ payara_library_path }}/{{ item.name }}"
+            checksum: "md5:{{ item.url }}.md5"
+            mode: '755'
+          register: download_result
+          until: download_result is succeeded
+          retries: 3
+          delay: 10
+          loop:
+            -
+              name: activemq-rar.rar
+              url: "https://repo1.maven.org/maven2/org/apache/activemq/activemq-rar/{{ activemq_rar_version }}/activemq-rar-{{ activemq_rar_version }}.rar"
+            -
+              name: payara-logback-delegation.jar
+              url: "https://repo1.maven.org/maven2/io/github/goodees/payara-logback-delegation/{{ logback_delegation_version }}/payara-logback-delegation-{{ logback_delegation_version }}.jar"
+            -
+              name: logstash-logback-encoder.jar
+              url: "https://repo1.maven.org/maven2/net/logstash/logback/logstash-logback-encoder/{{ logback_encoder_version }}/logstash-logback-encoder-{{ logback_encoder_version }}.jar"
+            -
+              name: payara-logback-libs.jar
+              url: "https://repo1.maven.org/maven2/io/github/goodees/payara-logback-libs/{{ logback_libs_version }}/payara-logback-libs-{{ logback_libs_version }}.jar"
+            -
+              name: mssql-jdbc.jre11.jar
+              url: "https://repo1.maven.org/maven2/com/microsoft/sqlserver/mssql-jdbc/{{ mssql_jdbc_version }}.jre11/mssql-jdbc-{{ mssql_jdbc_version }}.jre11.jar"
+            -
+              name: postgresql.jar
+              url: "https://repo1.maven.org/maven2/org/postgresql/postgresql/{{ postgres_jdbc_version }}/postgresql-{{ postgres_jdbc_version }}.jar"

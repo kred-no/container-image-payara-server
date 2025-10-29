@@ -1,12 +1,7 @@
-# https://docs.docker.com/build/ci/github-actions/manage-tags-labels/
-# https://docs.docker.com/build/ci/github-actions/test-before-push/
-# https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows
-# TODO: image: ghcr.io/kred-no/payara-server-ce
----
-name: Payara Server - Community Edition
+name: 'Payara Server Full (Community Edition)'
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   
   schedule:
     - cron: "15 02 */14 * *" # Every 14-day @02:15
@@ -16,55 +11,63 @@ on:
       - published
 
 env:
-  # target_image_name: ${{ github.repository }}
+  builder_image: 'docker.io/debian:latest'
   payara_admin_secret: ${{ secrets.PAYARA_ADMIN_SECRET }} # Default: Admin123
+  versions:
+    activemq_rar: '6.1.8'
+    logback_delegation: '1.0.0'
+    logback_encoder: '9.0'
+    logback_libs: '1.0.0'
+    mssql_jdbc: '10.2.1'
+    postgres_jdbc: '42.3.6'
 
 jobs:
-  payara_build_and_publish:
-    strategy:
-      fail-fast: true
-      matrix:
-        os: ['ubuntu-latest']
-        java_version: ['21', '17']
-        payara_release:
-          - '7.2025.1.Alpha2'
-          - '6.2025.6'
-          - '6.2025.3'
-        #include : []
-        exclude:
-          - payara_release: '7.2025.1.Alpha2'
-            java_version: '17'
+  build_payara_container:
 
     permissions:
       packages: write
       contents: read
+    
+    strategy:
+      fail-fast: true # One failed build => fail all
+      matrix:
+        os: ['ubuntu-latest']
+        runtime_image: 
+          - 'docker.io/azul/zulu-openjdk-debian:25-jre-headless'
+        payara_major:
+          - '6'
+        payara_minor:
+          - '2025.10'
+        include:
+          - payara_major: '7'
+            payara_minor: 2025.1.Beta1
+        exclude: []
 
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 10
+    
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: docker
+        uses: actions/checkout@v5
       -
-        name: Set up QEMU for Docker
+        name: Setup QEMU
         uses: docker/setup-qemu-action@v3
+      -
+        name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
         with:
           platforms: linux/amd64,linux/arm64
       -
-        name: Setup Buildx for Docker
-        uses: docker/setup-buildx-action@v3
-      -
-        name: Login to Docker Hub
-        #if: true #github.event_name != 'pull_request'
+        name: Login to docker.io
+        if: true
         uses: docker/login-action@v3
         with:
-          registry: registry.hub.docker.com # docker.io
+          registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Login to GitHub Container Registry (GHCR)
+        name: Login to ghcr.io
         if: false
         uses: docker/login-action@v3
         with:
@@ -72,14 +75,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
-        name: Configure Docker Metadata
+        name: Configure Metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
             registry.hub.docker.com/kdsda/payara-server-ce
           flavor: |
-            prefix=${{ matrix.payara_release }}-${{ matrix.java_version }}-
+            prefix="${{ matrix.payara_major }}.${{ matrix.payara_minor }}-"
           tags: |
             type=schedule,pattern={{date 'YYYYMMDD-HHmmss' tz='Europe/Oslo'}}
             type=ref,event=branch
@@ -87,17 +90,21 @@ jobs:
         name: Build and Push
         uses: docker/build-push-action@v6
         with:
-          context: "{{defaultContext}}:docker"
-          file: Dockerfile.debian
-          platforms: linux/amd64,linux/arm64
           push: true
+          context: "{{ defaultContext }}:/src/docker"
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
-            base_image_name=docker.io/azul/zulu-openjdk-debian
-            base_image_version=${{ matrix.java_version }}-jre-headless
-            payara_version=${{ matrix.payara_release }}
-            postgres_jdbc_version=42.7.7
-            mssql_jdbc_version=12.8.1.jre11
-            activemq_rar_version=6.1.6
-            payara_admin_secret=${{ env.payara_admin_secret }}
+            builder_image="${{ env.builder_image }}"
+            runtime_image="${{ matrix.runtime_image }}"
+            bld_payara_admin_secret="${{ env.payara_admin_secret }}"
+            bld_payara_version_major="${{ matrix.payara_major }}"
+            bld_payara_version_release="${{ matrix.payara_minor }}"
+            bld_activemq_rar_version="${{ env.versions.activemq }}"
+            bld_logback_delegation_version="${{ env.versions.logback_delegation }}"
+            bld_logback_encoder_version="${{ env.versions.logback_encoder }}"
+            bld_logback_libs_version="${{ env.versions.logback_libs }}"
+            bld_mssql_jdbc_version="${{ env.versions.mssql_jdbc }}"
+            bld_postgres_jdbc_version="${{ env.versions.postgres_jdbc }}"

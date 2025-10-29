@@ -94,14 +94,14 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
-            builder_image="${{ env.builder_image }}"
-            runtime_image="${{ matrix.runtime_image }}"
-            bld_payara_admin_secret="${{ env.payara_admin_secret }}"
-            bld_payara_version_major="${{ matrix.payara_major }}"
-            bld_payara_version_release="${{ matrix.payara_minor }}"
-            bld_activemq_rar_version="${{ env.version_activemq }}"
-            bld_logback_delegation_version="${{ env.version_logback_delegation }}"
-            bld_logback_encoder_version="${{ env.version_logback_encoder }}"
-            bld_logback_libs_version="${{ env.version_logback_libs }}"
-            bld_mssql_jdbc_version="${{ env.version_mssql_jdbc }}"
-            bld_postgres_jdbc_version="${{ env.version_postgres_jdbc }}"
+            builder_image=${{ env.builder_image }}
+            runtime_image=${{ matrix.runtime_image }}
+            bld_payara_admin_secret=${{ env.payara_admin_secret }}
+            bld_payara_version_major=${{ matrix.payara_major }}
+            bld_payara_version_release=${{ matrix.payara_minor }}
+            bld_activemq_rar_version=${{ env.version_activemq }}
+            bld_logback_delegation_version=${{ env.version_logback_delegation }}
+            bld_logback_encoder_version=${{ env.version_logback_encoder }}
+            bld_logback_libs_version=${{ env.version_logback_libs }}
+            bld_mssql_jdbc_version=${{ env.version_mssql_jdbc }}
+            bld_postgres_jdbc_version=${{ env.version_postgres_jdbc }}

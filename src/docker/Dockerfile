@@ -14,7 +14,7 @@ ARG bld_logback_delegation_version="1.0.0"
 ARG bld_logback_encoder_version="9.0"
 ARG bld_logback_libs_version="1.0.0"
 ARG bld_mssql_jdbc_version="10.2.1"
-ARG bld_payara_admin_secret="Admin123"
+#ARG bld_payara_admin_secret="Admin123"
 ARG bld_payara_version_major='6'
 ARG bld_payara_version_release='2025.10'
 ARG bld_postgres_jdbc_version="42.3.6"
@@ -60,7 +60,7 @@ RUN ansible-playbook -i localhost, /tmp/download.yml \
 FROM ${runtime_image}
 
 # Required to re-declare global variables inside stage
-ARG bld_payara_admin_secret
+#ARG bld_payara_admin_secret
 
 # Override at runtime, if required. Examples:
 #   TZ="Europe/Oslo"
@@ -88,7 +88,8 @@ EXPOSE 8080 8181 4848 9009
 # Copy build artifacts & Configure container
 COPY --from=builder /output/payara "${PAYARA_DIR}"
 COPY --chmod='755' ["./files/setup-runtime.debian.sh", "/tmp/setup-runtime.sh"]
-RUN /tmp/setup-runtime.sh
+RUN --mount=type=secret,id=payara_admin_secret,env=PAYARA_ADMIN_SECRET \
+  /tmp/setup-runtime.sh
 
 # Copy startup script
 COPY --chmod='755' ["./files/docker-entrypoint.sh","/usr/local/bin/docker-entrypoint.sh"]

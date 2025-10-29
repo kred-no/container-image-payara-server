@@ -37,13 +37,13 @@ ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} create-domain --nopassword=true $
 # Set Admin Password
 tee "${PATH_ADMIN_SECRET}" > /dev/null <<EOF
 AS_ADMIN_PASSWORD=
-AS_ADMIN_NEWPASSWORD=${bld_payara_admin_secret}
+AS_ADMIN_NEWPASSWORD=${PAYARA_ADMIN_SECRET}
 EOF
 
 ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} change-admin-password --domain_name=${DOMAIN_NAME}
 
 tee "${PATH_ADMIN_SECRET}" > /dev/null <<EOF
-AS_ADMIN_PASSWORD=${bld_payara_admin_secret}
+AS_ADMIN_PASSWORD=${PAYARA_ADMIN_SECRET}
 EOF
 
 # ----------------------

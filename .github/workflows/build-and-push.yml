@@ -1,3 +1,6 @@
+# TODO:
+# https://cicube.io/blog/github-actions-cache/#docker-layer-caching
+---
 name: 'Payara Server Full (Community Edition)'
 
 on:
@@ -22,14 +25,14 @@ env:
 jobs:
   build_payara_container:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     permissions:
       packages: write
       contents: read
     
     strategy:
-      fail-fast: true # One failed build => fail all
+      fail-fast: true
       matrix:
         runtime_image: 
           - 'docker.io/azul/zulu-openjdk-debian:25-jre-headless'
@@ -87,16 +90,18 @@ jobs:
         name: Build and Push
         uses: docker/build-push-action@v6
         with:
-          push: true
-          context: "{{ defaultContext }}:/src/docker"
+          context: "{{ defaultContext }}:src/docker"
           file: Dockerfile
-          platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          secrets: |
+            "payara_admin_secret=${{ secrets.PAYARA_ADMIN_SECRET }}"
           build-args: |
             builder_image=${{ env.builder_image }}
             runtime_image=${{ matrix.runtime_image }}
-            bld_payara_admin_secret=${{ secrets.PAYARA_ADMIN_SECRET }}
             bld_payara_version_major=${{ matrix.payara_major }}
             bld_payara_version_release=${{ matrix.payara_minor }}
             bld_activemq_rar_version=${{ env.version_activemq_rar }}
@@ -105,3 +110,4 @@ jobs:
             bld_logback_libs_version=${{ env.version_logback_libs }}
             bld_mssql_jdbc_version=${{ env.version_mssql_jdbc }}
             bld_postgres_jdbc_version=${{ env.version_postgres_jdbc }}
+          push: true

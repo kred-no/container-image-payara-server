@@ -44,7 +44,7 @@ jobs:
         include:
           - payara_major: '7'
             payara_minor: '2025.1'
-            runtme_image: 'docker.io/azul/zulu-openjdk-debian:25-jre-headless'
+            runtime_image: 'docker.io/azul/zulu-openjdk-debian:25-jre-headless'
         exclude: []
     
     steps:

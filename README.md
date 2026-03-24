@@ -4,8 +4,8 @@
 
 **Container builds for `Payara Server Full` (Community Edition)**
 
-* [Download from Docker Hub](https://hub.docker.com/r/kdsda/payara-server-ce)
-* [Dockerfile](src/docker/Dockerfile)
+* [Docker Hub](https://hub.docker.com/r/kdsda/payara-server-ce)
+* [Dockerfile](src/zulu/Dockerfile)
 
 **Default Credentials**
 

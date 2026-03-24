@@ -99,7 +99,7 @@ jobs:
           images: |
             registry.hub.docker.com/kdsda/payara-server-ce
           flavor: |
-            prefix=${{ matrix.versions.payara_major }}.${{ matrix.versions.payara_minor }}-zulu-${{ matrix.versions.runtime }}
+            prefix=${{ matrix.versions.payara_major }}.${{ matrix.versions.payara_minor }}-zulu-${{ matrix.versions.runtime }}-
           tags: |
             type=schedule,pattern={{date 'YYYYMMDD-HHmmss' tz='Europe/Oslo'}}
             type=ref,event=branch

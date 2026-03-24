@@ -6,12 +6,12 @@ name: 'Payara Server Full (Community Edition)'
 on:
   workflow_dispatch: {}
   
-  schedule:
-    - cron: "15 02 */14 * *" # Every 14-day @02:15
+  #schedule:
+  #  - cron: "15 02 */14 * *" # Every 14-day @02:15
   
-  release:
-    types:
-      - published
+  #release:
+  #  types:
+  #    - published
 
 env:
   #builder_image: 'docker.io/debian:latest'

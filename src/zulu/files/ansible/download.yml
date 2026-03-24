@@ -4,7 +4,6 @@
 - name: Payara Builder - Download External Resources
   hosts: localhost
   connection: local
-
   become: true
   gather_facts: false
 
@@ -40,7 +39,6 @@
         - "{{ export_folder }}"
     -
       name: --- Payara Download ---
-      when: true
       block:
         -
           name: Payara - Download Archive
@@ -71,7 +69,6 @@
             creates: "{{ export_folder }}/payara"
     -
       name: --- Payara Library Files ---
-      when: true
       block:
         -
           name: Define Payara Library Path

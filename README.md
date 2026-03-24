@@ -1,25 +1,35 @@
 # container-image-payara-server
+![build](https://github.com/kred-no/container-image-payara-server/actions/workflows/zulu.yml/badge.svg)
+![build](https://github.com/kred-no/container-image-payara-server/actions/workflows/zulu-legacy.yml/badge.svg)
 
-![build](https://github.com/kred-no/container-image-payara-server/actions/workflows/build-and-push.yml/badge.svg)
+**Container builds for `Payara Server Full` (Community Edition)**
 
-Container image builds for Payara Server Full (Community Edition)
-
-**Payara Server (Community Edition)**
-
-  * Secure Admin enabled
-  * Postgres JDBC driver
-  * MSSQL JDBC driver
-  * ActiveMQ Resource Adapter (RAR)
-    * Disable OpenMQ: `https://blog.payara.fish/disabling-openmq-in-payara-server`
-    * Using ActiveMQ `https://blog.payara.fish/connecting-to-activemq-with-payara-server`
-    * Location: `glassfish/domains/payara/lib/activemq-rar.rar`
+* [Download from Docker Hub](https://hub.docker.com/r/kdsda/payara-server-ce)
+* [Dockerfile](src/docker/Dockerfile)
 
 **Default Credentials**
 
-  * Username: `Admin`
-  * Password: `Admin123`
+| USERNAME | PASSWORD  |
+| :--      | :--       |
+| `Admin`  | `Admin123`|
 
-## Build & Run locally
+
+## ENVIRONMENT VARIABLES
+
+| NAME                   | DEFAULT  |
+| --:                    | :--      |
+| LC_ALL                 | `C` |
+| CONFIG_DIR             | `/opt/payara/config` |
+| SCRIPT_DIR             | `/opt/payara/scripts` |
+| DEPLOY_DIR             | `/opt/payara/deploy` |
+| PATH_POSTBOOT_COMMANDS | `/opt/payara/config/postboot-commands.asadmin` |
+| PATH_PREBOOT_COMMANDS  | `/opt/payara/config/preboot-commands.asadmin` |
+| JAVA_TOOL_OPTIONS      | `-XX:MaxRAMPercentage=85.0 -XX:InitialRAMPercentage=85.0 -XX:+ExitOnOutOfMemoryError` |
+| TZ                     | ` ` |
+
+## BUILD & RUN
+
+#### LOCAL
 
 ```bash
 # Docker (buildx)
@@ -31,8 +41,8 @@ buildah bud -f Dockerfile -t local/payara:latest .
 
 ```bash
 # Docker
-docker run --rm -it -p 4848:4848 -p 8080:8080 --name payara-ce local/payara:latest
+docker run --rm -d -e TZ=Europe/Oslo -e LC_ALL=nb_NO.ISO-8859-1 -p 4848:4848 -p 8080:8080 --name payara-ce local/payara:latest
 
-# Podman
-podman run --rm -it -p 4848:4848 -p 8080:8080 --name payara-ce local/payara:latest
+# RedHat Podman
+podman run --rm -d -e TZ=Europe/Oslo -e LC_ALL=nb_NO.ISO-8859-1 -p 4848:4848 -p 8080:8080 --name payara-ce local/payara:latest
 ```

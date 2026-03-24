@@ -3,7 +3,7 @@
 # https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows
 # TODO: image: ghcr.io/kred-no/payara-server-ce
 ---
-name: Payara Server - Community Edition
+name: zulu-legacy-payara-server-ce
 
 on:
   workflow_dispatch: {}
@@ -87,7 +87,7 @@ jobs:
         name: Build and Push
         uses: docker/build-push-action@v6
         with:
-          context: "{{defaultContext}}:docker"
+          context: "{{defaultContext}}:src/zulu-legacy"
           file: Dockerfile.debian
           platforms: linux/amd64,linux/arm64
           push: true

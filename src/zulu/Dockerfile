@@ -9,15 +9,6 @@
 ARG builder_image="docker.io/alpine/ansible:latest"
 ARG runtime_image="docker.io/azul/zulu-openjdk-debian:25-jre-headless"
 
-#ARG bld_activemq_rar_version="6.1.8"
-#ARG bld_logback_delegation_version="1.0.0"
-#ARG bld_logback_encoder_version="9.0"
-#ARG bld_logback_libs_version="1.0.0"
-#ARG bld_mssql_jdbc_version="10.2.1"
-#ARG bld_payara_version_major='6'
-#ARG bld_payara_version_release='2025.10'
-#ARG bld_postgres_jdbc_version="42.3.6"
-
 # ----------------------
 # BUILDER
 # ----------------------
@@ -33,11 +24,6 @@ ARG bld_mssql_jdbc_version
 ARG bld_payara_version_major
 ARG bld_payara_version_release
 ARG bld_postgres_jdbc_version
-
-# Include pipx bin-path
-#ENV PATH="/root/.local/bin:$PATH"
-#COPY --chmod='755' ["./files/setup-builder.debian.sh", "/tmp/setup-builder.sh"]
-#RUN ./tmp/setup-builder.sh
 
 # Add Required OS packages
 RUN apk add --no-cache tar unzip zip
@@ -87,8 +73,9 @@ EXPOSE 8080 8181 4848 9009
 # Copy build artifacts & Configure container
 COPY --from=builder /output/payara "${PAYARA_DIR}"
 COPY --chmod='755' ["./files/setup-runtime.debian.sh", "/tmp/setup-runtime.sh"]
-RUN --mount=type=secret,id=payara_admin_secret,env=PAYARA_ADMIN_SECRET \
-  /tmp/setup-runtime.sh
+RUN --mount=type=secret,id=payara_admin_secret \
+  export PAYARA_ADMIN_SECRET=$(cat /run/secrets/payara_admin_secret) \
+  && /tmp/setup-runtime.sh
 
 # Copy startup script
 COPY --chmod='755' ["./files/docker-entrypoint.sh","/usr/local/bin/docker-entrypoint.sh"]

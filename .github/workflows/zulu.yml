@@ -1,0 +1,130 @@
+# TODO:
+# https://cicube.io/blog/github-actions-cache/#docker-layer-caching
+---
+name: 'zulu-payara-server-ce'
+
+on:
+  workflow_dispatch: {}
+  
+  schedule:
+    - cron: "20 02 */28 * *" # Every 28th day @02:20
+  
+  release:
+    types:
+      - published
+
+env:
+  builder_image: 'docker.io/alpine/ansible'
+  runtime_image: 'docker.io/azul/zulu-openjdk-debian'
+
+jobs:
+  build_payara_container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      packages: write
+      contents: read
+    
+    strategy:
+      fail-fast: true
+      matrix:
+        versions:
+          -
+            builder: '2.20.0'
+            runtime: '25-jre-headless'
+            payara_major: '6'
+            payara_minor: '2025.11'
+            activemq_rar: '6.2.1'
+            logback_delegation: '1.0.0'
+            logback_encoder: '9.0'
+            logback_libs: '1.0.0'
+            mssql: '13.4.0'
+            postgres: '42.7.10'
+          -
+            builder: '2.20.0'
+            runtime: '25-jre-headless'
+            payara_major: '7'
+            payara_minor: '2026.3'
+            activemq_rar: '6.2.1'
+            logback_delegation: '1.0.0'
+            logback_encoder: '9.0'
+            logback_libs: '1.0.0'
+            mssql: '13.4.0'
+            postgres: '42.7.10'
+        #runtime_image: 
+        #  - 'docker.io/azul/zulu-openjdk-debian:25-jre-headless'
+        #payara_major:
+        #  - '6'
+        #payara_minor:
+        #  - '2025.10'
+        #include:
+        #  - payara_major: '7'
+        #    payara_minor: 2025.1.Beta1
+        #    runtme_image: 'docker.io/azul/zulu-openjdk-debian:25-jre-headless'
+        exclude: []
+    
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v6
+      -
+        name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Setup Buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          platforms: linux/amd64,linux/arm64
+      -
+        name: Login to docker hub
+        uses: docker/login-action@v3
+        with:
+          registry: registry.hub.docker.com
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Login to ghcr.io
+        if: false
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Configure Metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            registry.hub.docker.com/kdsda/payara-server-ce
+          flavor: |
+            prefix=${{ matrix.versions.payara_major }}.${{ matrix.versions.payara_minor }}-zulu-${{ matrix.versions.runtime }}
+          tags: |
+            type=schedule,pattern={{date 'YYYYMMDD-HHmmss' tz='Europe/Oslo'}}
+            type=ref,event=branch
+      -
+        name: Build and Push
+        uses: docker/build-push-action@v7
+        with:
+          context: "{{ defaultContext }}:src/zulu"
+          file: Dockerfile
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          secrets: |
+            "payara_admin_secret=${{ secrets.PAYARA_ADMIN_SECRET }}"
+          build-args: |
+            builder_image=${{ env.builder_image }}:${{ matrix.versions.builder }}
+            runtime_image=${{ env.runtime_image }}:${{ matrix.versions.runtime }}
+            bld_payara_version_major=${{ matrix.versions.payara_major }}
+            bld_payara_version_release=${{ matrix.versions.payara_minor }}
+            bld_activemq_rar_version=${{ matrix.versions.activemq_rar }}
+            bld_logback_delegation_version=${{ matrix.versions.logback_delegation }}
+            bld_logback_encoder_version=${{ matrix.versions.logback_encoder }}
+            bld_logback_libs_version=${{ matrix.versions.logback_libs }}
+            bld_mssql_jdbc_version=${{ matrix.versions.mssql }}
+            bld_postgres_jdbc_version=${{ matrix.versions.postgres }}
+          push: true

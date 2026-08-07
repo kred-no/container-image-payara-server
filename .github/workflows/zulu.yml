@@ -31,27 +31,27 @@ jobs:
       matrix:
         versions:
           -
-            builder: '2.20.0'
+            builder: '2.21.0'
             runtime: '25-jre-headless'
             payara_major: '6'
             payara_minor: '2025.11'
-            activemq_rar: '6.2.1'
+            activemq_rar: '6.3.0'
             logback_delegation: '1.0.0'
             logback_encoder: '9.0'
             logback_libs: '1.0.0'
             mssql: '13.4.0'
-            postgres: '42.7.10'
+            postgres: '42.7.13'
           -
-            builder: '2.20.0'
+            builder: '2.21.0'
             runtime: '25-jre-headless'
             payara_major: '7'
-            payara_minor: '2026.3'
-            activemq_rar: '6.2.1'
+            payara_minor: '2026.7'
+            activemq_rar: '6.3.0'
             logback_delegation: '1.0.0'
             logback_encoder: '9.0'
             logback_libs: '1.0.0'
             mssql: '13.4.0'
-            postgres: '42.7.10'
+            postgres: '42.7.13'
         #runtime_image: 
         #  - 'docker.io/azul/zulu-openjdk-debian:25-jre-headless'
         #payara_major:

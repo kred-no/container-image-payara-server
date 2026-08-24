@@ -61,8 +61,8 @@ for JVM_OPTION in $(${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfil
   ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} delete-jvm-options ${JVM_OPTION}
 done
 
-# Add Logback Configuration (?)
-#${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} create-jvm-options "\-Dlogback.configurationFile=${CONFIG_DIR}/logback.xml"
+# Add Logback Configuration
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} create-jvm-options "\-Dlogback.configurationFile=${CONFIG_DIR}/logback.xml"
 
 # Shutdown Payara Domain
 ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} stop-domain --kill=true ${DOMAIN_NAME}

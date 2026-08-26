@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2026-08-26
+  **CHANGES**
+  * Added sops-config
+  * Added default configuration for `logback.xml` to builds
+  * Added Makefile for local build/test
+
 ## 2026-03-24
   **CHANGES**
   * Maintenance & Updated workflow with new versions - [RR]

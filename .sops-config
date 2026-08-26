@@ -1,0 +1,15 @@
+keys: &default_keys
+ age: 'age1dgxf5tas2w20995rusqry9gqak3clqy4wfz0r3xaexq0um74epcqv6y8nx'
+ azure_keyvault:
+   - 'https://krednokvsops.vault.azure.net/keys/sops-key-primary/'
+
+stores:
+ yaml:
+   indent: 2
+ json:
+   indent: 2
+
+creation_rules:
+ -
+   path_regex: .+
+   <<: *default_keys

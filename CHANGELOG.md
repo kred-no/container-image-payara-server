@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026-09-01
+  **CHANGES**
+  * Enabled healtcheck service & updated the default JVM env-parameters - [RR]
+
 ## 2026-08-26
   **CHANGES**
   * Added sops-config

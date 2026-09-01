@@ -51,7 +51,7 @@ FROM ${runtime_image}
 #   LC_ALL="nb_NO.ISO-8859-1"
 
 ENV LC_ALL="C" \
-    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=85.0 -XX:InitialRAMPercentage=85.0 -XX:+ExitOnOutOfMemoryError"
+    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=200 -XX:NativeMemoryTracking=summary"
 
 ENV DOMAIN_NAME="payara" \
     PAYARA_USER="payara" \

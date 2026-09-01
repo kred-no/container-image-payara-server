@@ -31,12 +31,9 @@ build:
 	--build-arg bld_postgres_jdbc_version=$(POSTGRES_JDBC_VERSION) \
   .
 
-run:
-	$(CONTAINER_ENGINE) run --rm -d \
+debug:
+	$(CONTAINER_ENGINE) run --rm -it \
 	-p 4848:4848 -p 8080:8080 \
-	--env PATH_POSTBOOT_COMMANDS=/opt/payara/config/postboot.asadmin \
-	--mount type=bind,src=$(POSTBOOT_FILE_PATH),dst=/opt/payara/config/postboot.asadmin,ro,relabel=private \
-	--mount type=bind,src=$(LOGBACK_FILE_PATH),dst=/opt/payara/config/logback.xml,ro,relabel=private \
 	--name payara-local $(IMAGE_NAME):$(IMAGE_TAG)
 
 # Remove the image

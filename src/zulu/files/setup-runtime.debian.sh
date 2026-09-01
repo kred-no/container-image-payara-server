@@ -53,9 +53,6 @@ EOF
 # Start Payara Domain
 ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} start-domain ${DOMAIN_NAME}
 
-# Enable Admin Console (*:4848)
-${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} enable-secure-admin
-
 # Remove legacy MEMORY options
 for JVM_OPTION in $(${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} list-jvm-options | grep -E "Xm[sx]"); do
   ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} delete-jvm-options ${JVM_OPTION}
@@ -63,6 +60,12 @@ done
 
 # Add Logback Configuration
 ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} create-jvm-options "\-Dlogback.configurationFile=${CONFIG_DIR}/logback.xml"
+
+# Enable Health-Check
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} set-microprofile-healthcheck-configuration --enabled=true --endpoint=health
+
+# Enable Admin Console (*:4848)
+${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} enable-secure-admin
 
 # Shutdown Payara Domain
 ${PAYARA_DIR}/bin/asadmin --user ${ADMIN_USER} --passwordfile=${PATH_ADMIN_SECRET} stop-domain --kill=true ${DOMAIN_NAME}
